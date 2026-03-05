@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
-import { Order, AdminStats, DashboardResponse } from '../types';
+import { DashboardResponse, DateRange } from '@/types';
 import StatsCard from './StatsCard';
 import DataTable from './DataTable';
 import DashboardCharts from './DashboardCharts';
-import { mockDb } from '../services/mockDb';
+import { fetchLumoraData } from '../services/lumoraService';
 
 type FilterType = 'day' | 'week' | 'month' | 'year' | 'custom' | 'all';
 
@@ -13,32 +12,35 @@ const DashboardContent: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('month');
   const [customRange, setCustomRange] = useState({ start: '', end: '' });
+  const [selectedProduct, setSelectedProduct] = useState<string>('Tous les produits');
+  const [availableProducts, setAvailableProducts] = useState<string[]>([]);
 
   const fetchData = async () => {
     setLoading(true);
-    let start: Date | undefined;
-    let end: Date = new Date();
+    let range: DateRange | undefined;
 
-    const now = new Date();
-    if (filter === 'day') {
-      start = new Date(now.setHours(0, 0, 0, 0));
-    } else if (filter === 'week') {
-      start = new Date(now.setDate(now.getDate() - 7));
-    } else if (filter === 'month') {
-      start = new Date(now.setMonth(now.getMonth() - 1));
-    } else if (filter === 'year') {
-      start = new Date(now.setFullYear(now.getFullYear() - 1));
-    } else if (filter === 'all') {
-      start = undefined;
-      end = new Date();
-    } else if (filter === 'custom' && customRange.start && customRange.end) {
-      start = new Date(customRange.start);
-      end = new Date(customRange.end);
+    if (filter === 'custom' && customRange.start && customRange.end) {
+      range = { start: customRange.start, end: customRange.end };
     }
 
     try {
-      const response = await mockDb.getDashboardData(start, end);
+      const response = await fetchLumoraData(
+        filter, 
+        range, 
+        selectedProduct !== 'Tous les produits' ? selectedProduct : undefined
+      );
+      
+      console.log('Data fetched:', {
+        totalRevenue: response.stats.totalRevenue,
+        totalOrders: response.stats.totalOrders,
+        countryData: response.charts.ordersByCountry?.length,
+      });
+      
       setData(response);
+      
+      if (response.availableProducts) {
+        setAvailableProducts(['Tous les produits', ...response.availableProducts]);
+      }
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
     } finally {
@@ -50,7 +52,7 @@ const DashboardContent: React.FC = () => {
     if (filter !== 'custom') {
       fetchData();
     }
-  }, [filter]);
+  }, [filter, selectedProduct]);
 
   const handleCustomFilterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +61,7 @@ const DashboardContent: React.FC = () => {
 
   return (
     <div className="p-4 md:p-8 space-y-8 bg-[#f8fafc] min-h-full max-w-[1600px] mx-auto animate-in fade-in duration-700">
-      {/* Upper Bar: Title & Filters */}
+      {/* Header avec filtres */}
       <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
@@ -73,13 +75,13 @@ const DashboardContent: React.FC = () => {
           <p className="text-slate-500 text-sm font-medium">Analyse temps réel de votre base de données Postgres.</p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3 bg-white p-2 rounded-2xl shadow-sm border border-slate-100">
-          <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3 bg-white p-2 md:p-3 rounded-2xl shadow-sm border border-slate-100">
+          <div className="flex flex-wrap items-center gap-1 bg-slate-50 p-1 rounded-xl">
             {(['day', 'week', 'month', 'year', 'all', 'custom'] as FilterType[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-[10px] md:text-xs font-bold transition-all whitespace-nowrap ${
                   filter === f ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
                 }`}
               >
@@ -106,10 +108,39 @@ const DashboardContent: React.FC = () => {
                 onChange={(e) => setCustomRange(prev => ({ ...prev, end: e.target.value }))}
               />
               <button type="submit" className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
               </button>
             </form>
           )}
+
+          <div className="h-6 w-px bg-slate-100 mx-1"></div>
+
+          <div className="relative">
+            <select
+              value={selectedProduct}
+              onChange={(e) => {
+                setSelectedProduct(e.target.value);
+                setTimeout(() => fetchData(), 100);
+              }}
+              className="appearance-none bg-slate-50 border-none outline-none rounded-lg text-xs font-bold text-slate-700 px-3 py-2 pr-8 cursor-pointer hover:bg-slate-100 transition-colors"
+              disabled={loading}
+            >
+              {availableProducts.length > 0 ? (
+                availableProducts.map((product) => (
+                  <option key={product} value={product}>{product}</option>
+                ))
+              ) : (
+                <option value="Tous les produits">Tous les produits</option>
+              )}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-400">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
 
           <div className="h-6 w-px bg-slate-100 mx-1"></div>
 
@@ -126,7 +157,7 @@ const DashboardContent: React.FC = () => {
         </div>
       </div>
 
-      {/* KPI Dynamic Grid */}
+      {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {!data || loading ? (
           Array.from({ length: 8 }).map((_, i) => (
@@ -134,7 +165,7 @@ const DashboardContent: React.FC = () => {
           ))
         ) : (
           <>
-            <StatsCard title="Chiffre d’affaires total" value={data.stats.totalRevenue} isCurrency type="revenue" />
+            <StatsCard title="Chiffre d'affaires total" value={data.stats.totalRevenue} isCurrency type="revenue" />
             <StatsCard title="Nombre de commandes" value={data.stats.totalOrders} type="orders" />
             <StatsCard title="Paiements réussis (%)" value={`${data.stats.paymentSuccessRate.toFixed(1)}%`} type="rate" />
             <StatsCard title="Paiements échoués" value={data.stats.failedPayments} type="danger" />
@@ -146,9 +177,8 @@ const DashboardContent: React.FC = () => {
         )}
       </div>
 
-      {/* Main Content Layout */}
+      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Stats */}
         <div className="lg:col-span-4 space-y-8 h-full">
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
              <div className="flex items-center justify-between mb-6">
@@ -174,7 +204,6 @@ const DashboardContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Visual Charts */}
         <div className="lg:col-span-8">
           {!loading && data && (
             <DashboardCharts 
@@ -182,12 +211,13 @@ const DashboardContent: React.FC = () => {
               ordersData={data.charts.ordersHistogram}
               paymentData={data.charts.paymentDistribution}
               productsData={data.charts.topProducts}
+              countryData={data.charts.ordersByCountry}
             />
           )}
         </div>
       </div>
 
-      {/* Transactions Table Section */}
+      {/* Transactions Table */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="p-8 border-b border-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/50 backdrop-blur-md">
           <div className="space-y-1">

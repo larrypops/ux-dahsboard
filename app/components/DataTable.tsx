@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Order } from '../types';
+import { Order } from '@/types';
 import { formatFCFA } from '../services/lumoraService';
 
 interface DataTableProps {
@@ -10,7 +10,7 @@ interface DataTableProps {
 const DataTable: React.FC<DataTableProps> = ({ data }) => {
   return (
     <div className="overflow-x-auto w-full transition-colors pb-4">
-      <table className="w-full text-left min-w-[800px]">
+      <table className="w-full text-left min-w-[600px] md:min-w-[800px]">
         <thead className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-10 backdrop-blur-md">
           <tr>
             <th className="px-5 md:px-6 py-4 text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Référence</th>

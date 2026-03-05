@@ -1,6 +1,7 @@
+"use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, AppView } from './types';
+import { User, AppView } from '../types';
 import Login from './components/Login';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -8,10 +9,9 @@ import Overview from './components/Overview';
 import Performance from './components/Performance';
 import Transactions from './components/Transactions';
 import Settings from './components/Settings';
-import SqlQuery from './components/SqlQuery';
 import Toast, { ToastType } from './components/Toast';
 
-const App: React.FC = () => {
+export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentView, setCurrentView] = useState<AppView>('overview');
@@ -80,12 +80,11 @@ const App: React.FC = () => {
   if (!user) return <Login onLogin={handleLogin} />;
 
   const renderView = () => {
-    const commonProps = { key: refreshKey, showToast };
+    const commonProps = { showToast };
     switch (currentView) {
-      case 'overview': return <Overview {...commonProps} />;
-      case 'performance': return <Performance {...commonProps} />;
-      case 'transactions': return <Transactions {...commonProps} />;
-      case 'sql': return <SqlQuery {...commonProps} />;
+      case 'overview': return <Overview key={refreshKey} {...commonProps} />;
+      case 'performance': return <Performance key={refreshKey} {...commonProps} />;
+      case 'transactions': return <Transactions key={refreshKey} {...commonProps} />;
       case 'settings': return <Settings user={user} />;
       default:
         return (
@@ -131,6 +130,4 @@ const App: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default App;
+}

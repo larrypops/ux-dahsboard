@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { DashboardResponse, FilterType, DateRange } from '../types';
+import { DashboardResponse, FilterType, DateRange } from '@/types';
 import DashboardCharts from './DashboardCharts';
 import FilterBar from './FilterBar';
 import { fetchLumoraData } from '../services/lumoraService';
@@ -15,7 +14,11 @@ const Performance: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetchLumoraData(filter, filter === 'custom' ? customRange : undefined, productFilter);
+      const response = await fetchLumoraData(
+        filter, 
+        filter === 'custom' ? customRange : undefined, 
+        productFilter
+      );
       setData(response);
     } catch (err) {
       console.error(err);
@@ -61,6 +64,7 @@ const Performance: React.FC = () => {
               ordersData={data.charts.ordersHistogram}
               paymentData={data.charts.paymentDistribution}
               productsData={data.charts.topProducts}
+              countryData={data.charts.ordersByCountry}
             />
           )}
         </div>

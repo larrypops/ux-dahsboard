@@ -1,5 +1,0 @@
-{
-  "name": "Lumora Data Dashboard",
-  "description": "A high-performance React dashboard with simulated PostgreSQL connectivity, featuring real-time data visualization and AI-powered insights using Gemini.",
-  "requestFramePermissions": []
-}

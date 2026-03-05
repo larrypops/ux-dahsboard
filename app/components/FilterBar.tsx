@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { FilterType, DateRange } from '../types';
+import { FilterType, DateRange } from '@/types';
 
 interface FilterBarProps {
   currentFilter: FilterType;
@@ -11,6 +11,7 @@ interface FilterBarProps {
   selectedProduct: string;
   onProductChange: (product: string) => void;
   isLoading?: boolean;
+  availableProducts?: string[];
 }
 
 const FilterBar: React.FC<FilterBarProps> = ({
@@ -21,7 +22,8 @@ const FilterBar: React.FC<FilterBarProps> = ({
   onApplyCustom,
   selectedProduct,
   onProductChange,
-  isLoading
+  isLoading,
+  availableProducts
 }) => {
   const dateFilters: { label: string; value: FilterType }[] = [
     { label: 'J', value: 'day' },
@@ -41,7 +43,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
     custom: 'Perso'
   };
 
-  const products = [
+  const defaultProducts = [
     "Tous les produits",
     "Lumora Premium",
     "Sync Engine v2",
@@ -49,6 +51,12 @@ const FilterBar: React.FC<FilterBarProps> = ({
     "Audit de Base",
     "API Key Pro"
   ];
+
+  const products = availableProducts && availableProducts.length > 0 ? availableProducts : defaultProducts;
+  
+  // Debug log
+  console.log('FilterBar - availableProducts:', availableProducts);
+  console.log('FilterBar - products to display:', products);
 
   return (
     <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 md:gap-4 bg-white dark:bg-slate-900 p-2 md:p-3 rounded-2xl md:rounded-[28px] shadow-sm border border-slate-100 dark:border-slate-800 ring-1 ring-slate-900/5 dark:ring-white/5 transition-colors w-full lg:w-auto">

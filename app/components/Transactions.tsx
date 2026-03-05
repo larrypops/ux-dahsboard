@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Order, DashboardResponse, FilterType, DateRange } from '../types';
+import { Order, DashboardResponse, FilterType, DateRange } from '@/types';
 import DataTable from './DataTable';
 import FilterBar from './FilterBar';
 import { fetchLumoraData } from '../services/lumoraService';

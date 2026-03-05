@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { AdminStats, DashboardResponse, FilterType, DateRange } from '../types';
+import { AdminStats, DashboardResponse, FilterType, DateRange } from '@/types';
 import StatsCard from './StatsCard';
 import FilterBar from './FilterBar';
 import { fetchLumoraData } from '../services/lumoraService';
@@ -16,12 +16,22 @@ const Overview: React.FC<OverviewProps> = ({ showToast }) => {
   const [filter, setFilter] = useState<FilterType>('month');
   const [productFilter, setProductFilter] = useState<string>('Tous les produits');
   const [customRange, setCustomRange] = useState<DateRange>({ start: '', end: '' });
+  const [availableProducts, setAvailableProducts] = useState<string[]>(['Tous les produits']);
 
   const fetchData = async (isManual = false) => {
     setLoading(true);
     try {
       const response = await fetchLumoraData(filter, filter === 'custom' ? customRange : undefined, productFilter);
       setData(response);
+      
+      // Mettre à jour la liste des produits disponibles
+      if (response.availableProducts) {
+        const products = ['Tous les produits', ...response.availableProducts];
+        // Éviter les doublons
+        setAvailableProducts(prev => 
+          JSON.stringify(prev) === JSON.stringify(products) ? prev : products
+        );
+      }
       
       if (isManual && showToast) {
         showToast('Instance PostgreSQL (Simulée) rafraîchie', 'success');
@@ -37,6 +47,11 @@ const Overview: React.FC<OverviewProps> = ({ showToast }) => {
   useEffect(() => {
     if (filter !== 'custom') fetchData();
   }, [filter, productFilter]);
+
+  // Debug log
+  useEffect(() => {
+    console.log('Overview - availableProducts:', availableProducts);
+  }, [availableProducts]);
 
   return (
     <div className="p-4 md:p-8 space-y-6 md:space-y-10 animate-in fade-in duration-700 max-w-[1600px] mx-auto transition-colors duration-300">
@@ -57,6 +72,7 @@ const Overview: React.FC<OverviewProps> = ({ showToast }) => {
           selectedProduct={productFilter}
           onProductChange={setProductFilter}
           isLoading={loading}
+          availableProducts={availableProducts}
         />
       </div>
 
@@ -89,25 +105,25 @@ const Overview: React.FC<OverviewProps> = ({ showToast }) => {
                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 7v10c0 1.1.9 2 2 2h12a2 2 0 002-2V7M4 7a2 2 0 012-2h12a2 2 0 012 2M4 7l8 5 8-5" /></svg>
                       </div>
                       <div className="overflow-hidden">
-                         <p className="text-sm font-bold text-white truncate">Connexion Postgres Simulée</p>
+                         <p className="text-sm font-bold text-white truncate">Connexion PostgreSQL Live</p>
                          <p className="text-[9px] text-slate-500 font-mono truncate">109.199.118.183:5432/lumora_db</p>
                       </div>
                    </div>
                    <div className="flex flex-col items-start sm:items-end w-full sm:w-auto">
-                      <span className="text-[10px] font-black text-emerald-500 uppercase">Sandbox</span>
-                      <span className="text-[9px] text-slate-600 font-mono">MockDb Active</span>
+                      <span className="text-[10px] font-black text-emerald-500 uppercase">Production</span>
+                      <span className="text-[9px] text-slate-600 font-mono">PostgreSQL Active</span>
                    </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                   <div className="p-5 md:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Source de Données</p>
-                      <p className="text-sm font-black text-slate-900 dark:text-slate-100">mockDb.ts</p>
-                   </div>
-                   <div className="p-5 md:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800">
-                      <p className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Etat du Pont</p>
-                      <p className="text-sm font-black text-rose-500 uppercase tracking-tighter italic">En attente de déploiement API</p>
-                   </div>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-5 md:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800">
+                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Source de Données</p>
+                         <p className="text-sm font-black text-slate-900 dark:text-slate-100">PostgreSQL Live</p>
+                      </div>
+                      <div className="p-5 md:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-slate-800">
+                         <p className="text-[9px] md:text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Etat du Pont</p>
+                         <p className="text-sm font-black text-emerald-500 uppercase tracking-tighter italic">API Déployée & Connectée</p>
+                      </div>
                 </div>
              </div>
            </div>

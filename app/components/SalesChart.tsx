@@ -2,8 +2,8 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 // Fix: SalesData was not exported from types.ts, using ChartDataPoint instead
-import { ChartDataPoint } from '../types';
-import { formatFCFA } from '../services/mockDb';
+import { ChartDataPoint } from '@/types';
+import { formatFCFA } from '../services/lumoraService';
 
 interface SalesChartProps {
   data: ChartDataPoint[];

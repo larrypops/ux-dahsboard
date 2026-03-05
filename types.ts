@@ -74,11 +74,7 @@ export interface AdminStats {
   leadCount: number;
 }
 
-export interface ChartDataPoint {
-  [key: string]: any;
-  date: string;
-  value: number;
-}
+
 
 export interface StatusDistribution {
   [key: string]: any;
@@ -87,21 +83,50 @@ export interface StatusDistribution {
   color: string;
 }
 
+export interface ChartDataPoint {
+  date: string;
+  value: number;
+}
+
+export interface StatusDistribution {
+  name: string;
+  value: number;
+  color: string;
+}
+
 export interface ProductPerformance {
-  [key: string]: any;
   name: string;
   orders: number;
 }
 
+export interface CountryData {
+  countryCode: string;
+  countryName: string;
+  flag: string;
+  revenue: number;
+  displayName: string;
+}
+
 export interface DashboardResponse {
-  orders: Order[];
-  stats: AdminStats;
+  stats: {
+    totalRevenue: number;
+    totalOrders: number;
+    failedPayments: number;
+    averageBasket: number;
+    paymentSuccessRate: number;
+    topProduct: string;
+    userCount: number;
+    leadCount: number;
+  };
   charts: {
     revenueEvolution: ChartDataPoint[];
     ordersHistogram: ChartDataPoint[];
     paymentDistribution: StatusDistribution[];
     topProducts: ProductPerformance[];
+    ordersByCountry: CountryData[]; // ou revenueByCountry si vous préférez
   };
+  orders: any[];
+  availableProducts: string[];
 }
 
 export type FilterType = 'day' | 'week' | 'month' | 'year' | 'all' | 'custom';
